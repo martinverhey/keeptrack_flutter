@@ -1,0 +1,154 @@
+name: CD
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions a tab
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploying to Testflight
+    runs-on: macOS-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v1
+
+      - name: Deploy iOS Beta to TestFlight via Fastlane
+        uses: maierj/fastlane-action@v1.4.0
+        with:
+          lane: closed_beta
+        env:
+          APP_STORE_CONNECT_TEAM_ID: '${{ secrets.APP_STORE_CONNECT_TEAM_ID }}'
+          DEVELOPER_APP_ID: '${{ secrets.DEVELOPER_APP_ID }}'
+          DEVELOPER_APP_IDENTIFIER: '${{ secrets.DEVELOPER_APP_IDENTIFIER }}'
+          FASTLANE_APPLE_ID: '${{ secrets.FASTLANE_APPLE_ID }}'
+          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: '${{ secrets.FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD }}'
+          MATCH_PASSWORD: '${{ secrets.MATCH_PASSWORD }}'
+          GIT_AUTHORIZATION: '${{ secrets.GIT_AUTHORIZATION }}'
+          PROVISIONING_PROFILE_SPECIFIER: '${{ secrets.PROVISIONING_PROFILE_SPECIFIER }}'
+          TEMP_KEYCHAIN_PASSWORD: '${{ secrets.TEMP_KEYCHAIN_PASSWORD }}'
+          TEMP_KEYCHAIN_USER: '${{ secrets.TEMP_KEYCHAIN_USER }}'
+          APPLE_KEY_ID: '${{ secrets.APPLE_KEY_ID }}'
+          APPLE_ISSUER_ID: '${{ secrets.APPLE_ISSUER_ID }}'
+          APPLE_KEY_CONTENT: '${{ secrets.APPLE_KEY_CONTENT }}'
+
+
+
+
+
+
+
+
+
+# name: iOS CI
+
+# on:
+#   workflow_dispatch:
+#   push:
+#     branches: [ master ]
+#   pull_request:
+#     branches: [ master ]
+
+# jobs:
+#   build:
+#     runs-on: [macos-latest]
+#     steps:
+#     - name: Checkout repository
+#       uses: actions/checkout@v3
+#     - name: Get latest Xcode
+#       run: "sudo xcode-select -s /Applications/Xcode.app"
+#     - name: Checkout Flutter
+#       uses: subosito/flutter-action@v2
+#       with:
+#         channel: 'stable'
+#     # - name: 'Get Cloud SDK'
+#     #   uses: 'google-github-actions/setup-gcloud@v0'
+#     # - name: 'Authenticate & set project in gcloud'
+#     #   run: |
+#     #     gcloud auth activate-service-account --key-file=flutter-counter.json
+#     #     gcloud --quiet config set project flutter-counter-8904f
+#     - name: Get Flutter version  
+#       run: flutter --version
+#     - name: Get packages
+#       run: flutter pub get
+#     # - name: Analyze code
+#     #   run: flutter analyze
+#     # - name: Unit testing
+#     #   run: flutter test
+    
+#     - uses: actions/checkout@v2
+
+
+#     - name: Set up ruby env
+#       uses: ruby/setup-ruby@v1
+#       with:
+#         ruby-version: 2.7.2
+#         bundler-cache: true
+#         working-directory: ios
+ 
+#     - name: Import Code-Signing Certificates
+#       uses: Apple-Actions/import-codesign-certs@v1
+#       with:
+#         p12-file-base64: ${{ secrets.IOS_DIST_SIGNING_KEY }}
+#         p12-password: ${{ secrets.IOS_DIST_SIGNING_KEY_PASSWORD }}
+  
+#     - name: Build & upload iOS binary
+#       run: bundle exec fastlane ios build_upload_testflight
+#       env:
+#         ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+#         ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+#         ASC_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+#         KEYCHAIN_PATH: ~/Library/Keychains/signing_temp.keychain-db
+#       working-directory: ios
+ 
+#     # - name: Upload app-store ipa and dsyms to artifacts
+#     #   uses: actions/upload-artifact@v2
+#     #   with:
+#     #     name: app-store ipa & dsyms
+#     #     path: |
+#     #       ${{ github.workspace }}/parro-iOS.ipa
+#     #       ${{ github.workspace }}/*.app.dSYM.zip
+
+
+
+
+
+#     # - name: Configure Keychain
+#     #   run: |
+#     #     security create-keychain -p "" "$KEYCHAIN"
+#     #     security list-keychains -s "$KEYCHAIN"
+#     #     security default-keychain -s "$KEYCHAIN"
+#     #     security unlock-keychain -p "" "$KEYCHAIN"
+#     #     security set-keychain-settings
+#     #     security list-keychains
+#     # - name: Configure code signing
+#     #   run: |
+#     #     gpg -d -o "$DECRYPTED_CERTS_FILE_PATH" --pinentry-mode=loopback --passphrase "$CERTS_ENCRYPTION_PWD" "$ENCRYPTED_CERTS_FILE_PATH"
+#     #     gpg -d -o "$DECRYPTED_PROVISION_FILE_PATH" --pinentry-mode=loopback --passphrase "$PROVISION_ENCRYPTION_PWD" "$ENCRYPTED_PROVISION_FILE_PATH"
+#     #     security import "$DECRYPTED_CERTS_FILE_PATH" -k "$KEYCHAIN" -P "$CERTS_EXPORT_PWD" -A
+#     #     security set-key-partition-list -S apple-tool:,apple: -s -k "" "$KEYCHAIN"
+#     #     tar xzvf $DECRYPTED_PROVISION_FILE_PATH
+#     #     mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+#     #     for PROVISION in `ls ./*.mobileprovision`
+#     #     do
+#     #       UUID=`/usr/libexec/PlistBuddy -c 'Print :UUID' /dev/stdin <<< $(security cms -D -i ./$PROVISION)`
+#     #       cp "./$PROVISION" "$HOME/Library/MobileDevice/Provisioning Profiles/$UUID.mobileprovision"
+#     #     done
+#     # - name: Assemble release build
+#     #   run: |
+#     #     flutter build ios integration_test/main_test.dart --release
+
+#     #     pushd ios
+#         # xcodebuild -workspace Runner.xcworkspace -allowProvisioningUpdates -scheme Runner -config Flutter/Release.xcconfig -derivedDataPath "../build/ios_integ" -sdk iphoneos build-for-testing
+#     #     popd
+
+#     #     pushd build/ios_integ/Build/Products
+#     #     zip -r ios_tests.zip Release-iphoneos Runner_iphoneos15.2-arm64.xctestrun
+#     #     popd
+#     # - name: Integration testing
+#     #   run: |
+#     #     gcloud firebase test ios run --test "build/ios_integ/Build/Products/ios_tests.zip" --device model=ipad5,version=15.4,orientation=portrait

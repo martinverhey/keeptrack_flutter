@@ -31,7 +31,54 @@ def ensure_temp_keychain(name, password)
 end
 
 platform :ios do
-  lane :closed_beta do
+  lane :tests do
+    keychain_name = TEMP_KEYCHAIN_USER
+    keychain_password = TEMP_KEYCHAIN_PASSWORD
+    ensure_temp_keychain(keychain_name, keychain_password)
+
+    api_key = app_store_connect_api_key(
+      key_id: APPLE_KEY_ID,
+      issuer_id: APPLE_ISSUER_ID,
+      key_content: APPLE_KEY_CONTENT,            
+      duration: 1200,            
+      in_house: false
+    )
+
+    sh("flutter build ios integration_test/main_test.dart --release")
+    
+    increment_build_number(xcodeproj: "Runner.xcodeproj")
+    
+    cocoapods(
+      clean_install: true
+    )
+    
+    match(
+      type: 'appstore',
+      app_identifier: "#{DEVELOPER_APP_IDENTIFIER}",
+      git_basic_authorization: Base64.strict_encode64(GIT_AUTHORIZATION),
+      readonly: true,
+      keychain_name: keychain_name,
+      keychain_password: keychain_password,
+      api_key: api_key
+    )
+        
+    scan(
+      scheme: 'Runner',
+      clean: true,
+      skip_detect_devices: true,
+      build_for_testing: true,
+      configuration: "Release",
+      sdk: 'iphoneos',
+      should_zip_build_products: true
+    )
+
+    # sh("gcloud --quiet config set project keeptrack-b4294")
+    # sh("gcloud firebase test ios run --test test_output/build_products.zip --device model=iphone13pro,version=15.2,orientation=portrait")
+
+    delete_temp_keychain(keychain_name)
+  end
+
+  lane :beta_testflight do |options|
     keychain_name = TEMP_KEYCHAIN_USER
     keychain_password = TEMP_KEYCHAIN_PASSWORD
     ensure_temp_keychain(keychain_name, keychain_password)
@@ -44,12 +91,14 @@ platform :ios do
       in_house: false
     )
     
+    sh("flutter build ios --release --no-codesign")
+
     increment_build_number(xcodeproj: "Runner.xcodeproj")
     
     cocoapods(
       clean_install: true
     )
-
+    
     match(
       type: 'appstore',
       app_identifier: "#{DEVELOPER_APP_IDENTIFIER}",

@@ -15,12 +15,32 @@ jobs:
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v3
+
+      - name: Get latest Xcode
+        run: "sudo xcode-select -s /Applications/Xcode.app"
+      
+      - name: Checkout Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'      
+      
+      - name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: '${{ secrets.GOOGLE_CLOUD_SERVICE_KEY }}'
+      
+      - name: 'Checkout Google Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v0'
+      
+      - name: Set current project
+        run: gcloud config set project keeptrack-b4294
 
       - name: Deploy iOS Beta to TestFlight via Fastlane
         uses: maierj/fastlane-action@v1.4.0
         with:
-          lane: closed_beta
+          lane: tests
+          subdirectory: ios
         env:
           APP_STORE_CONNECT_TEAM_ID: '${{ secrets.APP_STORE_CONNECT_TEAM_ID }}'
           DEVELOPER_APP_ID: '${{ secrets.DEVELOPER_APP_ID }}'

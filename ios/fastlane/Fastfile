@@ -43,14 +43,6 @@ platform :ios do
       duration: 1200,            
       in_house: false
     )
-
-    sh("flutter build ios integration_test/main_test.dart --release")
-    
-    increment_build_number(xcodeproj: "Runner.xcodeproj")
-    
-    cocoapods(
-      clean_install: true
-    )
     
     match(
       type: 'appstore',
@@ -60,6 +52,14 @@ platform :ios do
       keychain_name: keychain_name,
       keychain_password: keychain_password,
       api_key: api_key
+    )
+
+    sh("flutter build ios integration_test/main_test.dart --release")
+    
+    increment_build_number(xcodeproj: "Runner.xcodeproj")
+    
+    cocoapods(
+      clean_install: true
     )
         
     scan(

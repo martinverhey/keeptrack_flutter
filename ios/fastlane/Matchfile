@@ -1,4 +1,4 @@
-git_url("git@github.com:martinverhey/app_store_profiles.git")
+git_url("https://github.com/martinverhey/app_store_profiles")
 
 storage_mode("git")
 

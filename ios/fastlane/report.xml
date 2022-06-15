@@ -5,47 +5,42 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000495">
+      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000537">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="1: create_keychain" time="0.106508">
+      <testcase classname="fastlane.lanes" name="1: create_keychain" time="0.083351">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="2: app_store_connect_api_key" time="0.00562">
+      <testcase classname="fastlane.lanes" name="2: app_store_connect_api_key" time="0.004462">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="3: flutter build ios integration_test/main_test.dart --release" time="49.495232">
+      <testcase classname="fastlane.lanes" name="3: match" time="3.819571">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="4: increment_build_number" time="2.21864">
+      <testcase classname="fastlane.lanes" name="4: flutter build ios --release --no-codesign" time="38.705378">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="5: cocoapods" time="3.061709">
+      <testcase classname="fastlane.lanes" name="5: cocoapods" time="2.915787">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="6: match" time="1.394289">
+      <testcase classname="fastlane.lanes" name="6: scan" time="63.746178">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="7: scan" time="74.767954">
-        
-      </testcase>
-    
-      
-      <testcase classname="fastlane.lanes" name="8: delete_keychain" time="0.021225">
+      <testcase classname="fastlane.lanes" name="7: delete_keychain" time="0.016761">
         
       </testcase>
     

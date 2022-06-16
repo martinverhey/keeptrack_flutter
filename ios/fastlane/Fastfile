@@ -76,7 +76,7 @@ platform :ios do
       clean: true,
       skip_detect_devices: true,
       build_for_testing: true,
-      configuration: "Release",
+      configuration: "Release-test",
       sdk: 'iphoneos',
       should_zip_build_products: true
     )

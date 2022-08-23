@@ -1,11 +1,9 @@
 name: CD
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-
-  # Allows you to run this workflow manually from the Actions a tab
+  # push:
+  #   branches: [ master ]
+  # pull_request:
+  #   branches: [ master ]
   workflow_dispatch:
 
 jobs:

@@ -1,24 +1,22 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/expense.model.dart';
 
 part 'categories_state.dart';
 
 class CategoriesCubit extends Cubit<CategoriesState> {
-  CategoriesCubit() : super(CategoriesInitial());
+  CategoriesCubit() : super(CategoryInitial());
 
-  final List<ExpenseCategory> selectedCategories = [];
+  ExpenseCategory selectedCategory = ExpenseCategory.geen;
 
   selectCategory(ExpenseCategory category) {
-    print('Current selected Categories:');
-    if (selectedCategories.contains(category)) {
-      selectedCategories.remove(category);
+    if (category == selectedCategory) {
+      selectedCategory = ExpenseCategory.geen;
     } else {
-      selectedCategories.add(category);
+      selectedCategory = category;
     }
-    emit(CategoriesSelected(categories: selectedCategories));
+    emit(CategorySelected(selectedCategory: selectedCategory));
   }
 
   // Future<void> getCategories() async {

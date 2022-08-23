@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:keeptrack_flutter/expenses/cubit/categories_cubit.dart';
 
 import '../../utils/general.dart';
-import '../cubit/category_cubit.dart';
 import '../cubit/expenses_cubit.dart';
 import '../models/expense.model.dart';
 
@@ -19,15 +18,10 @@ Future<dynamic> showExpenseCategoryFilter(context, Expense uitgave) {
               create: (context) => ExpensesCubit()..refreshExpenses(),
             ),
             BlocProvider(
-              create: (context) => CategoriesCubit(),
-            ),
-            BlocProvider(
-              create: (context) => CategoryCubit(),
+              create: (context) => CategoriesCubit()..selectCategory(uitgave.category),
             ),
           ],
           child: Builder(builder: (context) {
-            final _selectedCategories =
-                context.read<CategoriesCubit>().selectedCategories;
             // ExpenseCategory _selectedCategory = context
             //     .read<ExpensesCubit>()
             //     .expenses
@@ -45,7 +39,7 @@ Future<dynamic> showExpenseCategoryFilter(context, Expense uitgave) {
                     children: [
                       _title(uitgave),
                       _rowTitle("Categorie"),
-                      _categoryPicker(uitgave, _selectedCategories, context),
+                      _categoryPicker(uitgave, context),
                       const SizedBox(height: 16),
                       _rowTitle("Rekening"),
                       Text(uitgave.rekening),
@@ -62,69 +56,60 @@ Future<dynamic> showExpenseCategoryFilter(context, Expense uitgave) {
       });
 }
 
-_categoryPicker(Expense uitgave, List<ExpenseCategory> selectedCategories,
-    BuildContext context) {
-  return BlocBuilder<CategoryCubit, CategoryState>(
+_categoryPicker(Expense expense, BuildContext context) {
+  return BlocBuilder<CategoriesCubit, CategoriesState>(
     builder: (context, state) {
-      return Wrap(
-        spacing: 8,
-        runSpacing: -4,
-        children: ExpenseCategory.values.map<Widget>((category) {
-          if (state is CategoriesSelected) {
-            print('State selected');
-            return InputChip(
-              onPressed: () async {
-                // TODO: Categories Cubit
-                await _selectCategory(context, category);
-              },
-              labelStyle: const TextStyle(color: Colors.white),
-              backgroundColor: Colors.blue,
-              label: Text(category.name + 'ASDLJASJDKJASD'),
-            );
-          }
+      print(state);
+      if (state is CategorySelected) {
+        return Wrap(
+          spacing: 8,
+          runSpacing: -4,
+          children: ExpenseCategory.values.map<Widget>((category) {
+            if (state.selectedCategory == category) {
+              return InputChip(
+                onPressed: () async {
+                  await _selectCategory(context, expense, category);
+                },
+                labelStyle: const TextStyle(color: Colors.white),
+                backgroundColor: Colors.blue,
+                label: Text(category.name),
+              );
+            } else {
+              return InputChip(
+                onPressed: () async {
+                  await _selectCategory(context, expense, category);
+                },
+                label: Text(category.name),
+              );
+            }
+          }).toList(),
+        );
+      }
 
-          print('State initial');
-          return InputChip(
-            onPressed: () async {
-              // TODO: Expenses Cubit
-              // context
-              //     .read<ExpensesCubit>()
-              //     .expenses
-              //     .where((e) => e.naam == uitgave.naam)
-              //     .forEach((u) {
-              //   context.read<ExpensesCubit>().update(
-              //         Expense(
-              //           id: u.id,
-              //           datum: u.datum,
-              //           naam: u.naam,
-              //           rekening: u.rekening,
-              //           tegenRekening: u.tegenRekening,
-              //           code: u.code,
-              //           afBij: u.afBij,
-              //           bedrag: u.bedrag,
-              //           mutatieSoort: u.mutatieSoort,
-              //           mededeling: u.mededeling,
-              //           category: category,
-              //         ),
-              //       );
-              // });
-
-              // TODO: Categories Cubit
-              // _selectedCategory = category;
-
-              await _selectCategory(context, category);
-            },
-            label: Text(category.name),
-          );
-        }).toList(),
-      );
+      return const CircularProgressIndicator();
     },
   );
 }
 
 Future<void> _selectCategory(
-    BuildContext context, ExpenseCategory category) async {
-  context.read<CategoryCubit>().selectCategory(category);
+    BuildContext context, Expense expense, ExpenseCategory category) async {
+  final ExpenseCategory newCategory =
+      expense.category == category ? ExpenseCategory.geen : category;
+  context.read<CategoriesCubit>().selectCategory(newCategory);
+
+  final Expense newExpense = Expense(
+      id: expense.id,
+      datum: expense.datum,
+      naam: expense.naam,
+      rekening: expense.rekening,
+      tegenRekening: expense.tegenRekening,
+      code: expense.code,
+      afBij: expense.afBij,
+      bedrag: expense.bedrag,
+      mutatieSoort: expense.mutatieSoort,
+      mededeling: expense.mededeling,
+      category: category);
+  context.read<ExpensesCubit>().update(newExpense);
 
   await Future.delayed(const Duration(milliseconds: 300));
 

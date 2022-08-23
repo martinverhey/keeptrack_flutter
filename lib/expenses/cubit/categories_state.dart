@@ -3,10 +3,10 @@ part of 'categories_cubit.dart';
 @immutable
 abstract class CategoriesState {}
 
-class CategoriesInitial extends CategoriesState {}
+class CategoryInitial extends CategoriesState {}
 
-class CategoriesSelected extends CategoriesState {
-  final List<ExpenseCategory> categories;
+class CategorySelected extends CategoriesState {
+  final ExpenseCategory selectedCategory;
 
-  CategoriesSelected({required this.categories});
+  CategorySelected({required this.selectedCategory});
 }

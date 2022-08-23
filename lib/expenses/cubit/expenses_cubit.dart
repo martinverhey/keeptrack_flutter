@@ -115,9 +115,7 @@ class ExpensesCubit extends Cubit<ExpensesState> {
     final _month = DateTime.utc(year, month);
     final _monthStr = DateFormat.MMM().format(_month);
     if (all.isNotEmpty) {
-      return _monthStr +
-          ': ' +
-          (all[ExpenseCategory.extraMartin] as Map)[year][month].toString();
+      return _monthStr + ': ' + (all[ExpenseCategory.extraMartin] as Map)[year][month].toString();
     } else {
       return "";
     }

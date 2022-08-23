@@ -36,22 +36,25 @@ class _ExpensesPageState extends State<ExpensesPage> {
     // double saldo = ExpensesModel.instance.calculateTotal(_selectedCategories);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("KeepTrack"), actions: <Widget>[
-        IconButton(
-          icon: const Icon(Icons.filter_alt),
-          tooltip: 'Filter Categorie',
-          onPressed: () {
-            _showFilterModal(context);
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.delete_forever),
-          tooltip: 'Delete All',
-          onPressed: () {
-            _showAlert(context);
-          },
-        ),
-      ]),
+      appBar: AppBar(
+        title: const Text("KeepTrack"),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.filter_alt),
+            tooltip: 'Filter Categorie',
+            onPressed: () {
+              _showFilterModal(context);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_forever),
+            tooltip: 'Delete All',
+            onPressed: () {
+              _showAlert(context);
+            },
+          ),
+        ],
+      ),
       body: BlocBuilder<ExpensesCubit, ExpensesState>(
         builder: (context, state) {
           print(state);
@@ -59,8 +62,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
             return Column(
               children: [
                 for (var i = 0; i < DateTime.monthsPerYear; i++)
-                  Text(
-                      context.read<ExpensesCubit>().totalPerMonth(2022, i + 1)),
+                  Text(context.read<ExpensesCubit>().totalPerMonth(2022, i + 1)),
                 // {
                 //   let year = DateTime.now().year;
                 //   let dateTime = DateTime.utc(year, i);
@@ -108,16 +110,14 @@ class _ExpensesPageState extends State<ExpensesPage> {
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.category), label: "Categories"),
+          BottomNavigationBarItem(icon: Icon(Icons.category), label: "Categories"),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.blue[800],
         onTap: _onItemTapped,
       ),
       floatingActionButton: FloatingActionButton(
-          child: const Icon(Icons.add),
-          onPressed: context.read<ExpensesCubit>().importCSV),
+          child: const Icon(Icons.add), onPressed: context.read<ExpensesCubit>().importCSV),
     );
   }
 
@@ -182,8 +182,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
               ),
               Builder(builder: (_context) {
                 return TextButton(
-                  child: const Text("Verwijder",
-                      style: TextStyle(color: Colors.red)),
+                  child: const Text("Verwijder", style: TextStyle(color: Colors.red)),
                   onPressed: () {
                     _context.read<ExpensesCubit>().removeAll();
                     Navigator.of(context).pop();
@@ -233,8 +232,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
   }
 
   Wrap _categoryPicker2(BuildContext context, StateSetter setModalState) {
-    List<ExpenseCategory> _selectedCategories =
-        context.read<ExpensesCubit>().selectedCategories;
+    List<ExpenseCategory> _selectedCategories = context.read<ExpensesCubit>().selectedCategories;
     // print(UitgavenModel.uitgavenModel.gefilterdeUitgaven(_selectedCategorie));
     return Wrap(
       spacing: 8,
@@ -262,8 +260,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
               labelStyle: _selectedCategories.contains(categorie)
                   ? const TextStyle(color: Colors.white)
                   : null,
-              backgroundColor:
-                  _selectedCategories.contains(categorie) ? Colors.blue : null,
+              backgroundColor: _selectedCategories.contains(categorie) ? Colors.blue : null,
               label: Text(categorie.name),
             ),
           )

@@ -146,7 +146,7 @@ Column _title(Expense uitgave) {
             ),
           ),
           Text(
-            '€' + uitgave.bedrag.toString(),
+            '€${uitgave.bedrag}',
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,

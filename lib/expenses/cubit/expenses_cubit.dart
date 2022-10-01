@@ -1,11 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:bloc/bloc.dart';
 import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:meta/meta.dart';
 
 import '../../main.dart';
 import '../../repository/expenses.repository.dart';
@@ -17,7 +16,7 @@ part 'expenses_state.dart';
 class ExpensesCubit extends Cubit<ExpensesState> {
   ExpensesCubit() : super(ExpensesInitial());
 
-  var expensesRepository = getIt<ExpensesRepository>();
+  ExpensesRepository expensesRepository = getIt<ExpensesRepository>();
 
   List<Expense> expenses = [];
   double total = 0.0;
@@ -41,8 +40,8 @@ class ExpensesCubit extends Cubit<ExpensesState> {
 
       rows.removeAt(0);
       print('File has ${rows.length} rows (excl. header)');
-      var added = 0;
-      var duplicate = 0;
+      int added = 0;
+      int duplicate = 0;
 
       await Future.forEach(rows, (row) async {
         (row as List<dynamic>);
@@ -103,19 +102,19 @@ class ExpensesCubit extends Cubit<ExpensesState> {
   }
 
   Map<String, double> _totalPricePerCategory() {
-    var totalPerCategory = <String, double>{};
+    Map<String, double> totalPerCategory = <String, double>{};
     for (final category in ExpenseCategory.values) {
-      final _saldo = _calculateTotal([category]);
-      totalPerCategory[category.name] = _saldo;
+      final saldo = _calculateTotal([category]);
+      totalPerCategory[category.name] = saldo;
     }
     return totalPerCategory;
   }
 
   String totalPerMonth(int year, int month) {
-    final _month = DateTime.utc(year, month);
-    final _monthStr = DateFormat.MMM().format(_month);
+    final selectedMonth = DateTime.utc(year, month);
+    final monthStr = DateFormat.MMM().format(selectedMonth);
     if (all.isNotEmpty) {
-      return _monthStr + ': ' + (all[ExpenseCategory.extraMartin] as Map)[year][month].toString();
+      return '$monthStr: ${(all[ExpenseCategory.extraMartin] as Map)[year][month]}';
     } else {
       return "";
     }
@@ -132,7 +131,7 @@ class ExpensesCubit extends Cubit<ExpensesState> {
       for (final category in selectedCategories) {
         final maandOverzicht = pricePerCategoryPerMonth(category);
         all[category] = maandOverzicht;
-        final currentMonth = DateTime.now().month;
+        // final currentMonth = DateTime.now().month;
       }
       print(all);
       // print((all[Category.extraMartin] as Map)[2022][2]);
@@ -146,8 +145,8 @@ class ExpensesCubit extends Cubit<ExpensesState> {
     ];
     final months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
-    var saldoPerJaar = <int, Object>{};
-    var saldoPerMaand = <int, double>{};
+    Map<int, Object> saldoPerJaar = <int, Object>{};
+    Map<int, Object> saldoPerMaand = <int, double>{};
     for (final year in distinctYears) {
       saldoPerMaand = {};
       for (final month in months) {
@@ -159,14 +158,14 @@ class ExpensesCubit extends Cubit<ExpensesState> {
   }
 
   double _berekenSaldoPerMaand(ExpenseCategory category, int jaar, int maand) {
-    List<Expense> _expenses = expenses
+    List<Expense> expensesFilteredByCategoryYearMonth = expenses
         .where((element) =>
             element.category == category &&
             element.datum.year == jaar &&
             element.datum.month == maand)
         .toList();
     // print("Saldo per $maand = $saldo");
-    return addAndSubstractExpenses(_expenses);
+    return addAndSubstractExpenses(expensesFilteredByCategoryYearMonth);
   }
 
   double _calculateTotal(List<ExpenseCategory> categories) {
@@ -174,13 +173,13 @@ class ExpensesCubit extends Cubit<ExpensesState> {
       return addAndSubstractExpenses(expenses);
     }
 
-    var _filteredExpenses = <Expense>[];
+    List<Expense> expensesFilteredByCategory = [];
     for (final category in categories) {
-      _filteredExpenses.addAll(
+      expensesFilteredByCategory.addAll(
         expenses.where((e) => e.category == category).toList(),
       );
     }
-    return addAndSubstractExpenses(_filteredExpenses);
+    return addAndSubstractExpenses(expensesFilteredByCategory);
   }
 
   double addAndSubstractExpenses(List<Expense> expenses) {

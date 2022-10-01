@@ -11,8 +11,8 @@ void main() {
     testWidgets('Show fab button', (tester) async {
       app.main();
       await tester.pumpAndSettle();
-      final Finder _button = find.byType(FloatingActionButton);
-      expect(_button, findsOneWidget);
+      final Finder button = find.byType(FloatingActionButton);
+      expect(button, findsOneWidget);
     });
   });
 }

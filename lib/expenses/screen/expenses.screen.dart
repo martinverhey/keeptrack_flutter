@@ -15,7 +15,7 @@ class ExpensesPage extends StatefulWidget {
 
 class _ExpensesPageState extends State<ExpensesPage> {
   int _selectedIndex = 0;
-  static const List<Widget> _pages = <Widget>[];
+  // static const List<Widget> _pages = <Widget>[];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -61,7 +61,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
           if (state is ExpensesCompleted) {
             return Column(
               children: [
-                for (var i = 0; i < DateTime.monthsPerYear; i++)
+                for (int i = 0; i < DateTime.monthsPerYear; i++)
                   Text(context.read<ExpensesCubit>().totalPerMonth(2022, i + 1)),
                 // {
                 //   let year = DateTime.now().year;
@@ -83,18 +83,18 @@ class _ExpensesPageState extends State<ExpensesPage> {
                     padding: const EdgeInsets.all(8),
                     itemCount: state.expenses.length,
                     itemBuilder: ((context, index) {
-                      final _currentUitgave = state.expenses[index];
+                      final currentExpense = state.expenses[index];
 
                       if (index == 0) {
                         return Column(
                           children: [
                             _listHeader("Datum", "Naam", "Bedrag"),
-                            _listItem(context, index, _currentUitgave)
+                            _listItem(context, index, currentExpense)
                           ],
                         );
                       }
 
-                      return _listItem(context, index, _currentUitgave);
+                      return _listItem(context, index, currentExpense);
                     }),
                   ),
                 ),
@@ -117,7 +117,9 @@ class _ExpensesPageState extends State<ExpensesPage> {
         onTap: _onItemTapped,
       ),
       floatingActionButton: FloatingActionButton(
-          child: const Icon(Icons.add), onPressed: context.read<ExpensesCubit>().importCSV),
+        onPressed: context.read<ExpensesCubit>().importCSV,
+        child: const Icon(Icons.add),
+      ),
     );
   }
 
@@ -157,7 +159,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('€ ' + uitgave.bedrag.toString()),
+            Text('€ ${uitgave.bedrag}'),
           ],
         ),
         // contentPadding: const EdgeInsets.all(0),
@@ -180,11 +182,11 @@ class _ExpensesPageState extends State<ExpensesPage> {
                   Navigator.of(context).pop();
                 },
               ),
-              Builder(builder: (_context) {
+              Builder(builder: (newContext) {
                 return TextButton(
                   child: const Text("Verwijder", style: TextStyle(color: Colors.red)),
                   onPressed: () {
-                    _context.read<ExpensesCubit>().removeAll();
+                    newContext.read<ExpensesCubit>().removeAll();
                     Navigator.of(context).pop();
                   },
                 );
@@ -232,7 +234,7 @@ class _ExpensesPageState extends State<ExpensesPage> {
   }
 
   Wrap _categoryPicker2(BuildContext context, StateSetter setModalState) {
-    List<ExpenseCategory> _selectedCategories = context.read<ExpensesCubit>().selectedCategories;
+    List<ExpenseCategory> selectedCategories = context.read<ExpensesCubit>().selectedCategories;
     // print(UitgavenModel.uitgavenModel.gefilterdeUitgaven(_selectedCategorie));
     return Wrap(
       spacing: 8,
@@ -242,12 +244,12 @@ class _ExpensesPageState extends State<ExpensesPage> {
             (categorie) => InputChip(
               onPressed: () async {
                 setModalState(() {
-                  if (_selectedCategories.contains(categorie)) {
-                    _selectedCategories.remove(categorie);
+                  if (selectedCategories.contains(categorie)) {
+                    selectedCategories.remove(categorie);
                   } else {
-                    _selectedCategories.add(categorie);
+                    selectedCategories.add(categorie);
                   }
-                  print(_selectedCategories);
+                  print(selectedCategories);
                 });
                 setState(() {
                   context.read<ExpensesCubit>().calculateEverything();
@@ -257,10 +259,10 @@ class _ExpensesPageState extends State<ExpensesPage> {
 
                 Navigator.pop(context);
               },
-              labelStyle: _selectedCategories.contains(categorie)
+              labelStyle: selectedCategories.contains(categorie)
                   ? const TextStyle(color: Colors.white)
                   : null,
-              backgroundColor: _selectedCategories.contains(categorie) ? Colors.blue : null,
+              backgroundColor: selectedCategories.contains(categorie) ? Colors.blue : null,
               label: Text(categorie.name),
             ),
           )

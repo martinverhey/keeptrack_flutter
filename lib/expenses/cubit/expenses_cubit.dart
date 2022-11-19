@@ -1,30 +1,30 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:keeptrack_flutter/expenses/repository/expense.respository.dart';
 
+import '../models/summary_per_month.model.dart';
 import '../../main.dart';
-import '../../repository/expenses.repository.dart';
+import '../repository/expenses.repository.dart';
 import '../../utils/general.dart';
 import '../models/expense.model.dart';
 
 part 'expenses_state.dart';
 
 class ExpensesCubit extends Cubit<ExpensesState> {
-  ExpensesCubit() : super(ExpensesInitial());
+  ExpensesCubit() : super(ExpensesLoading());
 
-  ExpensesRepository expensesRepository = getIt<ExpensesRepository>();
+  final ExpensesRepository _expensesRepository = getIt<ExpensesRepository>();
+  final ExpenseRepository _expenseRepository = getIt<ExpenseRepository>();
 
-  List<Expense> expenses = [];
-  double total = 0.0;
-  int selectedMonth = 0;
-  List<ExpenseCategory> selectedCategories = [];
-  Map<ExpenseCategory, Object> all = {};
+  void importCSV(BuildContext context) async {
+    List<Expense> importedExpenses = [];
 
-  void importCSV() async {
     print("Pick file");
     FilePickerResult? result = await FilePicker.platform.pickFiles();
 
@@ -56,37 +56,53 @@ class ExpensesCubit extends Cubit<ExpensesState> {
           mutatieSoort: row[7],
           mededeling: row[8],
         );
+
         // print(uitgave);
-        if (expenses.contains(uitgave)) {
+        if ((state as ExpensesLoaded).expenses.contains(uitgave)) {
           // print(
           //     "Already exists: ${uitgave.datum} ${uitgave.naam} ${uitgave.afBij} ${uitgave.bedrag} ${uitgave.mededeling}");
           duplicate++;
         } else {
-          await add(uitgave);
+          importedExpenses.add(uitgave);
           added++;
         }
       });
 
-      // TODO: Add Snackbar back into VIEW
-      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      //     content: Text(
-      //   "Done: $added added, $duplicate skipped.",
-      // )));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+        "Done: $added added, $duplicate skipped.",
+      )));
       print("Done: $added added, $duplicate skipped.");
+      // inspect(importedExpenses);
+      final test = await addAll(importedExpenses);
+      print(test);
     } else {
       print("File picker cancelled");
     }
   }
 
-  List<Expense> filterExpensesByCategory(List<ExpenseCategory> categories) {
+  void setMonth(DateTime monthAndYear) {
+    if (state is ExpensesLoaded) {
+      _expensesRepository.monthAndYear = monthAndYear;
+
+      ExpensesLoaded loadedState = state as ExpensesLoaded;
+
+      emit(ExpensesLoaded(
+          expenses: loadedState.expenses,
+          selectedCategories: loadedState.selectedCategories,
+          summaries: loadedState.summaries,
+          monthAndYear: monthAndYear));
+    }
+  }
+
+  List<Expense> filterExpensesByCategory(List<Expense> expenses, List<ExpenseCategory> categories) {
     if (categories.isEmpty) {
       return _sortByDateAndId(expenses);
     }
 
     List<Expense> filteredExpenses = [];
     for (final category in categories) {
-      Iterable<Expense> filteredByCategory =
-          expenses.where((element) => element.category == category);
+      List<Expense> filteredByCategory = expenses.where((e) => e.category == category).toList();
       filteredExpenses.addAll(filteredByCategory);
     }
     return _sortByDateAndId(filteredExpenses);
@@ -101,124 +117,122 @@ class ExpensesCubit extends Cubit<ExpensesState> {
     return expenses;
   }
 
-  Map<String, double> _totalPricePerCategory() {
-    Map<String, double> totalPerCategory = <String, double>{};
-    for (final category in ExpenseCategory.values) {
-      final saldo = _calculateTotal([category]);
-      totalPerCategory[category.name] = saldo;
-    }
-    return totalPerCategory;
+  add(Expense expense) async {
+    await _expensesRepository.add(expense);
+    await getAll();
   }
 
-  String totalPerMonth(int year, int month) {
-    final selectedMonth = DateTime.utc(year, month);
-    final monthStr = DateFormat.MMM().format(selectedMonth);
-    if (all.isNotEmpty) {
-      return '$monthStr: ${(all[ExpenseCategory.extraMartin] as Map)[year][month]}';
-    } else {
-      return "";
-    }
+  addAll(List<Expense> expenses) async {
+    await Future.wait(expenses.map((expense) async {
+      await _expensesRepository.add(expense);
+    }));
+    await getAll();
   }
 
-  void calculateEverything() {
-    total = _calculateTotal(selectedCategories);
-    print('Total: $total');
+  update(Expense expense) async {
+    await _expensesRepository.update(expense);
+    await getAll();
+  }
 
-    final pricePerCategory = _totalPricePerCategory();
-    print('Price per category: $pricePerCategory');
+  remove(String id) async {
+    await _expensesRepository.remove(id);
+    await getAll();
+  }
 
+  removeAll() async {
+    await _expensesRepository.removeAll();
+    await getAll();
+  }
+
+  loading() {
+    final DateTime now = DateTime.now();
+    _expensesRepository.monthAndYear = DateTime(now.year, now.month);
+    emit(ExpensesLoading());
+  }
+
+  getAll() async {
+    List<Expense> expenses = await _expensesRepository.getAll();
+    List<ExpenseCategory> selectedCategories = _expenseRepository.selectedCategories;
     if (selectedCategories.isNotEmpty) {
-      for (final category in selectedCategories) {
-        final maandOverzicht = pricePerCategoryPerMonth(category);
-        all[category] = maandOverzicht;
-        // final currentMonth = DateTime.now().month;
-      }
-      print(all);
-      // print((all[Category.extraMartin] as Map)[2022][2]);
+      expenses =
+          expenses.where((expense) => selectedCategories.contains(expense.category)).toList();
     }
+    final DateTime monthAndYear = _expensesRepository.monthAndYear;
+    inspect(expenses);
+    print('REFRESH!');
+
+    emit(ExpensesLoaded(
+      expenses: expenses
+          .where(
+            (element) =>
+                element.datum.year == monthAndYear.year &&
+                element.datum.month == monthAndYear.month,
+          )
+          .toList(),
+      selectedCategories: selectedCategories,
+      summaries: selectedCategories.isEmpty
+          ? summaryPerMonth(expenses, ExpenseCategory.values)
+              .where((element) =>
+                  element.date.year == monthAndYear.year &&
+                  element.date.month == monthAndYear.month)
+              .toList()
+          : summaryPerMonth(expenses, selectedCategories),
+      monthAndYear: _expensesRepository.monthAndYear,
+    ));
   }
 
-  Map<int, Object> pricePerCategoryPerMonth(ExpenseCategory categorie) {
-    final years = expenses.map((e) => e.datum.year);
-    final distinctYears = [
+  void setFilter(ExpenseCategory category) {
+    List<ExpenseCategory> selectedCategories = _expenseRepository.selectedCategories;
+    if (selectedCategories.contains(category)) {
+      selectedCategories.remove(category);
+    } else {
+      selectedCategories.add(category);
+    }
+
+    _expenseRepository.selectCategories(selectedCategories);
+  }
+
+  List<SummaryPerMonth> summaryPerMonth(
+    List<Expense> expenses,
+    List<ExpenseCategory> categories,
+  ) {
+    final List<int> years = expenses.map((expense) => expense.datum.year).toList();
+    final List<int> distinctYears = [
       ...{...years}
     ];
-    final months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    final List<int> months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    List<SummaryPerMonth> summaries = [];
 
-    Map<int, Object> saldoPerJaar = <int, Object>{};
-    Map<int, Object> saldoPerMaand = <int, double>{};
     for (final year in distinctYears) {
-      saldoPerMaand = {};
       for (final month in months) {
-        saldoPerMaand[month] = _berekenSaldoPerMaand(categorie, year, month);
+        for (final category in categories) {
+          List<Expense> categoryPerMonth = expenses
+              .where((expense) =>
+                  expense.category == category &&
+                  expense.datum.year == year &&
+                  expense.datum.month == month)
+              .toList();
+
+          summaries.add(
+            SummaryPerMonth(
+              category: category,
+              date: DateTime(year, month),
+              amount: expenseTotal(categoryPerMonth),
+            ),
+          );
+        }
       }
-      saldoPerJaar[year] = saldoPerMaand;
     }
-    return saldoPerJaar;
+    return summaries;
   }
 
-  double _berekenSaldoPerMaand(ExpenseCategory category, int jaar, int maand) {
-    List<Expense> expensesFilteredByCategoryYearMonth = expenses
-        .where((element) =>
-            element.category == category &&
-            element.datum.year == jaar &&
-            element.datum.month == maand)
-        .toList();
-    // print("Saldo per $maand = $saldo");
-    return addAndSubstractExpenses(expensesFilteredByCategoryYearMonth);
-  }
-
-  double _calculateTotal(List<ExpenseCategory> categories) {
-    if (categories.isEmpty) {
-      return addAndSubstractExpenses(expenses);
-    }
-
-    List<Expense> expensesFilteredByCategory = [];
-    for (final category in categories) {
-      expensesFilteredByCategory.addAll(
-        expenses.where((e) => e.category == category).toList(),
-      );
-    }
-    return addAndSubstractExpenses(expensesFilteredByCategory);
-  }
-
-  double addAndSubstractExpenses(List<Expense> expenses) {
+  double expenseTotal(List<Expense> expenses) {
     return expenses.fold<double>(0, (previous, next) {
-      if (next.afBij == AfBij.bij.name) {
+      if (next.afBij == FromTo.bij.name) {
         return previous + next.bedrag;
       } else {
         return previous - next.bedrag;
       }
     });
-  }
-
-  add(Expense expense) async {
-    emit(ExpensesLoading());
-    expensesRepository.add(expense);
-    refreshExpenses();
-  }
-
-  update(Expense expense) {
-    emit(ExpensesLoading());
-    expensesRepository.update(expense);
-    refreshExpenses();
-  }
-
-  remove(String id) {
-    emit(ExpensesLoading());
-    expensesRepository.remove(id);
-    refreshExpenses();
-  }
-
-  removeAll() {
-    emit(ExpensesLoading());
-    expensesRepository.removeAll();
-    refreshExpenses();
-  }
-
-  void refreshExpenses() async {
-    expenses = await expensesRepository.getAll();
-    calculateEverything();
-    emit(ExpensesCompleted(expenses: expenses));
   }
 }

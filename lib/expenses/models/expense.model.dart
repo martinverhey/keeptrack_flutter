@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class Expense {
   int? id;
   DateTime datum;
@@ -22,11 +24,7 @@ class Expense {
 
   @override
   int get hashCode =>
-      datum.hashCode +
-      naam.hashCode +
-      afBij.hashCode +
-      bedrag.hashCode +
-      mededeling.hashCode;
+      datum.hashCode + naam.hashCode + afBij.hashCode + bedrag.hashCode + mededeling.hashCode;
 
   Expense({
     this.id,
@@ -68,7 +66,7 @@ class Expense {
     rekening: 'rekening',
     tegenRekening: 'tegenrekening',
     code: 'code',
-    afBij: AfBij.af.name,
+    afBij: FromTo.af.name,
     bedrag: 25,
     mutatieSoort: 'mutatiesoort',
     mededeling: 'mededeling',
@@ -88,12 +86,12 @@ class Expense {
   );
 }
 
-enum AfBij { af, bij }
+enum FromTo { af, bij }
 
-extension AfBijExtension on AfBij {
+extension FromToExtension on FromTo {
   static const names = {
-    AfBij.af: "Af",
-    AfBij.bij: "Bij",
+    FromTo.af: "Af",
+    FromTo.bij: "Bij",
   };
 
   String get name => names[this]!;
@@ -126,27 +124,53 @@ enum ExpenseCategory {
 extension ExpenseCategoryExtension on ExpenseCategory {
   static const names = {
     ExpenseCategory.geen: "Geen",
-    ExpenseCategory.inkomen: "Inkomen",
-    ExpenseCategory.onderhoud: "Onderhoud",
     ExpenseCategory.vasteLasten: "Vaste Lasten",
-    ExpenseCategory.meubilair: "Meubilair",
+    ExpenseCategory.onderhoud: "Onderhoud",
     ExpenseCategory.boodschappen: "Boodschappen",
     ExpenseCategory.shoppen: "Shoppen",
     ExpenseCategory.verzorging: "Verzorging",
-    ExpenseCategory.zorgkosten: "Zorgkosten",
     ExpenseCategory.kids: "Kids",
-    ExpenseCategory.reizen: "Reizen",
+    ExpenseCategory.meubilair: "Meubilair",
+    ExpenseCategory.zorgkosten: "Zorgkosten",
+    ExpenseCategory.opleiding: "Opleiding",
     ExpenseCategory.vakantie: "Vakantie",
+    ExpenseCategory.reizen: "Reizen",
     ExpenseCategory.hobby: "Hobby",
+    ExpenseCategory.overig: "Overig",
+    ExpenseCategory.inkomen: "Inkomen",
     ExpenseCategory.investeren: "Investeren",
+    ExpenseCategory.belastingdienst: "Belastingdienst",
     ExpenseCategory.extraMartin: "Extra (Martin)",
     ExpenseCategory.extraVera: "Extra (Vera)",
     ExpenseCategory.extraSamen: "Extra (M&V)",
-    ExpenseCategory.opleiding: "Opleiding",
-    ExpenseCategory.belastingdienst: "Belastingdienst",
-    ExpenseCategory.overig: "Overig",
     ExpenseCategory.onbekend: "Onbekend",
   };
 
   String get name => names[this]!;
+
+  static final colors = {
+    ExpenseCategory.geen: Colors.red[700],
+    ExpenseCategory.vasteLasten: Colors.orange[700],
+    ExpenseCategory.onderhoud: Colors.amber[700],
+    ExpenseCategory.boodschappen: Colors.yellow[700],
+    ExpenseCategory.shoppen: Colors.lime[700],
+    ExpenseCategory.verzorging: Colors.green[700],
+    ExpenseCategory.kids: Colors.cyan[700],
+    ExpenseCategory.meubilair: Colors.blue[700],
+    ExpenseCategory.zorgkosten: Colors.indigo[700],
+    ExpenseCategory.opleiding: Colors.purple[700],
+    ExpenseCategory.vakantie: Colors.pink[700],
+    ExpenseCategory.reizen: Colors.red[400],
+    ExpenseCategory.hobby: Colors.orange[400],
+    ExpenseCategory.overig: Colors.amber[400],
+    ExpenseCategory.inkomen: Colors.yellow[400],
+    ExpenseCategory.investeren: Colors.lime[400],
+    ExpenseCategory.belastingdienst: Colors.green[400],
+    ExpenseCategory.extraMartin: Colors.teal[400],
+    ExpenseCategory.extraVera: Colors.cyan[400],
+    ExpenseCategory.extraSamen: Colors.blue[400],
+    ExpenseCategory.onbekend: Colors.indigo[400],
+  };
+
+  Color get color => colors[this]!;
 }

@@ -1,8 +1,9 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-import '../expenses/models/expense.model.dart';
+import '../models/expense.model.dart';
 
 class ExpensesDBProvider {
   static final ExpensesDBProvider db = ExpensesDBProvider();
@@ -28,16 +29,17 @@ class ExpensesDBProvider {
     );
   }
 
-  Future<void> insert(Expense expense) async {
+  Future<int> insert(Expense expense) async {
     final db = await database;
 
-    await db.insert(
+    print("DB insert");
+    inspect(expense);
+
+    return await db.insert(
       'expenses',
       expense.toMap(),
       conflictAlgorithm: ConflictAlgorithm.ignore,
     );
-
-    // print("DB insert: " + expense.toString());
   }
 
   Future<List<Expense>> expenses() async {
@@ -74,7 +76,8 @@ class ExpensesDBProvider {
       whereArgs: [expense.id],
     );
 
-    // print("DB update: " + uitgave.toString());
+    print("DB update");
+    inspect(expense);
   }
 
   Future<void> delete(String id) async {
@@ -86,7 +89,7 @@ class ExpensesDBProvider {
       whereArgs: [id],
     );
 
-    // print("DB delete (id): " + id.toString());
+    print("DB delete (id: $id)");
   }
 
   Future<void> deleteAll() async {
@@ -94,6 +97,6 @@ class ExpensesDBProvider {
 
     await db.delete('expenses');
 
-    // print("DB delete all");
+    print("DB delete all");
   }
 }
